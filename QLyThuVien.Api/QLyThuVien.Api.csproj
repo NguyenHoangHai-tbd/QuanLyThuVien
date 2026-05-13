@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>QLyThuVien.Api</RootNamespace>
+    <AssemblyName>QLyThuVien.Api</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QLyThuVien.Application\QLyThuVien.Application.csproj" />
+    <ProjectReference Include="..\QLyThuVien.Infrastructure\QLyThuVien.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

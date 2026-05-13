@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QLyThuVien</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" hidden></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TV</div>
+        <div>
+          <strong>QLyThuVien</strong>
+          <span>SaaS Library</span>
+        </div>
+      </div>
+      <nav class="nav" id="nav" hidden>
+        <button data-view="dashboard" class="active">Dashboard</button>
+        <button data-view="catalog">Catalog</button>
+        <button data-view="circulation">Mượn trả</button>
+        <button data-view="members">Độc giả</button>
+        <button data-view="ai">AI Search</button>
+        <button data-view="audit">Audit</button>
+      </nav>
+      <div class="account" id="accountBox">
+        <span>Chưa đăng nhập</span>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar" id="topbar" hidden>
+        <div>
+          <p class="eyebrow" id="tenantKey">Tenant</p>
+          <h1 id="pageTitle">Dashboard</h1>
+        </div>
+        <div class="topbar-actions">
+          <select id="branchFilter" aria-label="Lọc chi nhánh"></select>
+          <button id="refreshBtn" class="secondary">Làm mới</button>
+          <button id="logoutBtn" class="ghost">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section id="loginView" class="login-view">
+        <form id="loginForm" class="login-panel">
+          <div>
+            <p class="eyebrow">Library management</p>
+            <h1>Quản lý thư viện</h1>
+            <p class="muted">Đăng nhập bằng tài khoản demo để chạy MVP multi-tenant.</p>
+          </div>
+          <label>
+            Tenant key
+            <input name="tenantKey" value="pacific" autocomplete="organization">
+          </label>
+          <label>
+            Email
+            <input name="email" value="admin@pacific.edu.vn" autocomplete="email">
+          </label>
+          <label>
+            Mật khẩu
+            <input name="password" type="password" value="Admin@123" autocomplete="current-password">
+          </label>
+          <button type="submit">Đăng nhập</button>
+          <p class="hint">Tài khoản khác: librarian@pacific.edu.vn / Library@123</p>
+        </form>
+      </section>
+
+      <section id="appView" hidden>
+        <section id="dashboardView" class="view"></section>
+        <section id="catalogView" class="view" hidden></section>
+        <section id="circulationView" class="view" hidden></section>
+        <section id="membersView" class="view" hidden></section>
+        <section id="aiView" class="view" hidden></section>
+        <section id="auditView" class="view" hidden></section>
+      </section>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

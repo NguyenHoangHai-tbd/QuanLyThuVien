@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="QLyThuVien.Api/QLyThuVien.Api.csproj" />
+  <Project Path="QLyThuVien.Application/QLyThuVien.Application.csproj" />
+  <Project Path="QLyThuVien.Domain/QLyThuVien.Domain.csproj" />
+  <Project Path="QLyThuVien.Infrastructure/QLyThuVien.Infrastructure.csproj" />
+</Solution>
