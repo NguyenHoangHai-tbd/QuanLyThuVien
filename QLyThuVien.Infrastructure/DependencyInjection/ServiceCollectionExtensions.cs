@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICurrentUserContextWriter>(provider => provider.GetRequiredService<CurrentUserContext>());
 
         services.AddScoped<AuthService>();
+        services.AddScoped<UserService>();
         services.AddScoped<TenantService>();
         services.AddScoped<CatalogService>();
         services.AddScoped<MemberService>();

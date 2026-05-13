@@ -17,6 +17,35 @@ public sealed record LoginRequest(string TenantKey, string Email, string Passwor
 
 public sealed record LoginResponse(string AccessToken, DateTimeOffset ExpiresAt, UserContextDto User);
 
+public sealed record UserAccountDto(
+    Guid Id,
+    string FullName,
+    string Email,
+    UserRole Role,
+    IReadOnlyCollection<Guid> BranchIds,
+    IReadOnlyCollection<string> BranchNames,
+    string Locale,
+    bool IsActive,
+    DateTimeOffset CreatedAt);
+
+public sealed record CreateUserRequest(
+    string FullName,
+    string Email,
+    string Password,
+    UserRole Role,
+    IReadOnlyCollection<Guid> BranchIds,
+    string Locale,
+    bool IsActive);
+
+public sealed record UpdateUserRequest(
+    string FullName,
+    string Email,
+    string? Password,
+    UserRole Role,
+    IReadOnlyCollection<Guid> BranchIds,
+    string Locale,
+    bool IsActive);
+
 public sealed record TenantDto(Guid Id, string Key, string Name, string Plan, string DefaultLocale, string PrimaryColor, bool IsActive);
 
 public sealed record TenantCreateRequest(string Key, string Name, string Plan, string DefaultLocale);
@@ -67,7 +96,20 @@ public sealed record CreateBookRequest(
     IReadOnlyCollection<string> Categories,
     IReadOnlyCollection<string> Tags);
 
+public sealed record UpdateBookRequest(
+    string Title,
+    string Isbn,
+    string Description,
+    int? PublishedYear,
+    string Language,
+    string Publisher,
+    IReadOnlyCollection<string> Authors,
+    IReadOnlyCollection<string> Categories,
+    IReadOnlyCollection<string> Tags);
+
 public sealed record CreateCopyRequest(Guid BookId, Guid BranchId, string Barcode, string Location);
+
+public sealed record UpdateCopyRequest(Guid BranchId, string Barcode, string Location, BookCopyStatus Status);
 
 public sealed record MemberDto(Guid Id, Guid BranchId, string BranchName, string Code, string FullName, string Email, string Phone, MemberStatus Status, DateTimeOffset JoinedAt);
 

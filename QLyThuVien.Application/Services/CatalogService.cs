@@ -96,6 +96,77 @@ public sealed class CatalogService : ApplicationServiceBase
         return MapBook(book);
     }
 
+    public async Task<BookDto> UpdateBookAsync(Guid id, UpdateBookRequest request, CancellationToken cancellationToken = default)
+    {
+        EnsureAuthenticated();
+
+        var book = TenantScope(Repository.Books).FirstOrDefault(x => x.Id == id);
+        if (book is null)
+        {
+            throw AppException.NotFound("Book not found.");
+        }
+
+        var title = Clean(request.Title);
+        var isbn = Clean(request.Isbn);
+
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(isbn))
+        {
+            throw AppException.BadRequest("Book title and ISBN are required.");
+        }
+
+        if (TenantScope(Repository.Books).Any(x => x.Id != id && x.Isbn.Equals(isbn, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw AppException.Conflict("ISBN already exists in this tenant.");
+        }
+
+        var publisher = GetOrCreatePublisher(request.Publisher);
+        var authorIds = request.Authors.Select(GetOrCreateAuthor).Select(x => x.Id).Distinct().ToList();
+        var categoryIds = request.Categories.Select(GetOrCreateCategory).Select(x => x.Id).Distinct().ToList();
+
+        book.Title = title;
+        book.Isbn = isbn;
+        book.Description = string.IsNullOrWhiteSpace(request.Description)
+            ? $"AI fallback: Mo ta ngan cho sach {title}."
+            : request.Description.Trim();
+        book.PublishedYear = request.PublishedYear;
+        book.Language = string.IsNullOrWhiteSpace(request.Language) ? CurrentUser.Locale : request.Language.Trim();
+        book.PublisherId = publisher?.Id;
+        book.AuthorIds = authorIds;
+        book.CategoryIds = categoryIds;
+        book.Tags = request.Tags.Select(Clean).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        book.UpdatedAt = Clock.UtcNow;
+        book.UpdatedBy = CurrentUser.Email;
+
+        AddAudit("catalog.book.updated", "Book", book.Id, $"Updated book {book.Title}");
+        await Repository.SaveChangesAsync(cancellationToken);
+
+        return MapBook(book);
+    }
+
+    public async Task DeleteBookAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        EnsureAuthenticated();
+
+        var book = TenantScope(Repository.Books).FirstOrDefault(x => x.Id == id);
+        if (book is null)
+        {
+            throw AppException.NotFound("Book not found.");
+        }
+
+        var hasCopies = TenantScope(Repository.BookCopies).Any(x => x.BookId == id);
+        if (hasCopies)
+        {
+            throw AppException.BadRequest("Delete book copies before deleting this book.");
+        }
+
+        book.IsDeleted = true;
+        book.UpdatedAt = Clock.UtcNow;
+        book.UpdatedBy = CurrentUser.Email;
+
+        AddAudit("catalog.book.deleted", "Book", book.Id, $"Deleted book {book.Title}");
+        await Repository.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<BookCopyDto> CreateCopyAsync(CreateCopyRequest request, CancellationToken cancellationToken = default)
     {
         var branch = GetBranch(request.BranchId);
@@ -134,6 +205,73 @@ public sealed class CatalogService : ApplicationServiceBase
         await Repository.SaveChangesAsync(cancellationToken);
 
         return MapCopy(copy);
+    }
+
+    public async Task<BookCopyDto> UpdateCopyAsync(Guid id, UpdateCopyRequest request, CancellationToken cancellationToken = default)
+    {
+        var copy = BranchScope(Repository.BookCopies).FirstOrDefault(x => x.Id == id);
+        if (copy is null)
+        {
+            throw AppException.NotFound("Book copy not found.");
+        }
+
+        var branch = GetBranch(request.BranchId);
+        var barcode = Clean(request.Barcode);
+
+        if (string.IsNullOrWhiteSpace(barcode))
+        {
+            throw AppException.BadRequest("Barcode is required.");
+        }
+
+        if (TenantScope(Repository.BookCopies).Any(x => x.Id != id && x.Barcode.Equals(barcode, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw AppException.Conflict("Barcode already exists in this tenant.");
+        }
+
+        if (request.Status == BookCopyStatus.Available && TenantScope(Repository.Loans).Any(x =>
+                x.BookCopyId == copy.Id &&
+                x.Status is LoanStatus.Active or LoanStatus.Overdue))
+        {
+            throw AppException.BadRequest("Return the active loan before marking this copy available.");
+        }
+
+        copy.BranchId = branch.Id;
+        copy.Barcode = barcode;
+        copy.QrCode = $"LIB://{CurrentUser.TenantKey}/{barcode}";
+        copy.Location = Clean(request.Location);
+        copy.Status = request.Status;
+        copy.UpdatedAt = Clock.UtcNow;
+        copy.UpdatedBy = CurrentUser.Email;
+
+        AddAudit("catalog.copy.updated", "BookCopy", copy.Id, $"Updated copy {copy.Barcode}", branch.Id);
+        await Repository.SaveChangesAsync(cancellationToken);
+
+        return MapCopy(copy);
+    }
+
+    public async Task DeleteCopyAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var copy = BranchScope(Repository.BookCopies).FirstOrDefault(x => x.Id == id);
+        if (copy is null)
+        {
+            throw AppException.NotFound("Book copy not found.");
+        }
+
+        var hasActiveLoan = TenantScope(Repository.Loans).Any(x =>
+            x.BookCopyId == copy.Id &&
+            x.Status is LoanStatus.Active or LoanStatus.Overdue);
+
+        if (hasActiveLoan)
+        {
+            throw AppException.BadRequest("Cannot delete a copy with an active loan.");
+        }
+
+        copy.IsDeleted = true;
+        copy.UpdatedAt = Clock.UtcNow;
+        copy.UpdatedBy = CurrentUser.Email;
+
+        AddAudit("catalog.copy.deleted", "BookCopy", copy.Id, $"Deleted copy {copy.Barcode}", copy.BranchId);
+        await Repository.SaveChangesAsync(cancellationToken);
     }
 
     public Task<IReadOnlyCollection<BookCopyDto>> GetCopiesAsync(Guid? bookId, Guid? branchId, CancellationToken cancellationToken = default)
