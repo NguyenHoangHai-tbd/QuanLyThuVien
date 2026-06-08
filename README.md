@@ -1,4 +1,4 @@
-# QLyThuVien - Dự án quản lý thư viện theo CQRS, MediatR và JWT
+# QLyThuVien - Dự án quản lý thư viện 
 
 ## 1. Giới thiệu dự án
 
@@ -19,7 +19,6 @@ Dự án phục vụ các nghiệp vụ chính của một hệ thống thư vi�
 - Xem thông báo.
 - Xem audit log.
 - Kiểm tra kết nối database.
-- Tìm kiếm và chat AI dạng fallback demo.
 
 Mục tiêu chính của lần hoàn thiện này là biến project từ dạng code gộp service/DTO/query sang cấu trúc rõ ràng hơn theo CQRS/MediatR, phù hợp để nộp bài hoặc đưa lên GitHub.
 
