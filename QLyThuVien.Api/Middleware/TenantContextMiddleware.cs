@@ -1,4 +1,5 @@
-using QLyThuVien.Application.Abstractions;
+using QLyThuVien.Application.Common;
+using QLyThuVien.Application.Interfaces;
 
 namespace QLyThuVien.Api.Middleware;
 
@@ -13,7 +14,6 @@ public sealed class TenantContextMiddleware
 
     public async Task InvokeAsync(
         HttpContext context,
-        IAccessTokenService accessTokenService,
         ILibraryRepository repository,
         ICurrentUserContextWriter currentUserWriter)
     {
@@ -24,30 +24,34 @@ public sealed class TenantContextMiddleware
             return;
         }
 
-        var authorization = context.Request.Headers.Authorization.ToString();
-        var token = authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-            ? authorization["Bearer ".Length..].Trim()
-            : string.Empty;
-
-        var payload = string.IsNullOrWhiteSpace(token) ? null : accessTokenService.TryReadToken(token);
-        if (payload is null)
+        if (context.User.Identity?.IsAuthenticated != true)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await context.Response.WriteAsJsonAsync(new { status = 401, detail = "Missing or invalid access token." });
+            await context.Response.WriteAsJsonAsync(new { status = 401, detail = "Missing or invalid JWT access token." });
+            return;
+        }
+
+        var tenantIdValue = context.User.FindFirst(JwtClaimNames.TenantId)?.Value;
+        var tenantKey = context.User.FindFirst(JwtClaimNames.TenantKey)?.Value ?? string.Empty;
+        var userIdValue = context.User.FindFirst(JwtClaimNames.UserId)?.Value;
+        if (!Guid.TryParse(tenantIdValue, out var tenantId) || !Guid.TryParse(userIdValue, out var userId))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new { status = 401, detail = "JWT token is missing tenant or user claims." });
             return;
         }
 
         var tenant = repository.Tenants.FirstOrDefault(x =>
             !x.IsDeleted &&
             x.IsActive &&
-            x.Id == payload.TenantId &&
-            x.Key.Equals(payload.TenantKey, StringComparison.OrdinalIgnoreCase));
+            x.Id == tenantId &&
+            x.Key.Equals(tenantKey, StringComparison.OrdinalIgnoreCase));
 
         var user = repository.Users.FirstOrDefault(x =>
             !x.IsDeleted &&
             x.IsActive &&
-            x.TenantId == payload.TenantId &&
-            x.Id == payload.UserId);
+            x.TenantId == tenantId &&
+            x.Id == userId);
 
         if (tenant is null || user is null)
         {

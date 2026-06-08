@@ -1,47 +1,39 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QLyThuVien.Application.Dtos;
-using QLyThuVien.Application.Services;
+using MediatR;
+using QLyThuVien.Application.Features.AuditLogs.Common;
+using QLyThuVien.Application.Features.AuditLogs.Queries;
+using QLyThuVien.Application.Features.Dashboard.Common;
+using QLyThuVien.Application.Features.Dashboard.Queries;
+using QLyThuVien.Application.Features.Notifications.Common;
+using QLyThuVien.Application.Features.Notifications.Queries;
 
 namespace QLyThuVien.Api.Controllers;
 
 [ApiController]
 [Route("api")]
+[Authorize]
 public sealed class OperationsController : ControllerBase
 {
-    private readonly AiService _aiService;
-    private readonly AuditService _auditService;
-    private readonly DashboardService _dashboardService;
-    private readonly NotificationService _notificationService;
+    private readonly ISender _sender;
 
-    public OperationsController(
-        DashboardService dashboardService,
-        NotificationService notificationService,
-        AuditService auditService,
-        AiService aiService)
+    public OperationsController(ISender sender)
     {
-        _dashboardService = dashboardService;
-        _notificationService = notificationService;
-        _auditService = auditService;
-        _aiService = aiService;
+        _sender = sender;
     }
 
     [HttpGet("dashboard/summary")]
+    [Authorize(Roles = "SuperAdmin,TenantAdmin,Librarian,InventoryStaff")]
     public Task<DashboardSummaryDto> GetDashboard(CancellationToken cancellationToken)
-        => _dashboardService.GetSummaryAsync(cancellationToken);
+        => _sender.Send(new GetDashboardSummaryQuery(), cancellationToken);
 
     [HttpGet("notifications")]
+    [Authorize(Roles = "SuperAdmin,TenantAdmin,Librarian,InventoryStaff")]
     public Task<IReadOnlyCollection<NotificationDto>> GetNotifications([FromQuery] Guid? branchId, CancellationToken cancellationToken)
-        => _notificationService.GetNotificationsAsync(branchId, cancellationToken);
+        => _sender.Send(new GetNotificationsQuery(branchId), cancellationToken);
 
     [HttpGet("audit-logs")]
+    [Authorize(Roles = "SuperAdmin,TenantAdmin")]
     public Task<IReadOnlyCollection<AuditLogDto>> GetAuditLogs([FromQuery] Guid? branchId, CancellationToken cancellationToken)
-        => _auditService.GetAuditLogsAsync(branchId, cancellationToken);
-
-    [HttpPost("ai/search")]
-    public Task<AiSearchResponse> AiSearch(AiSearchRequest request, CancellationToken cancellationToken)
-        => _aiService.SemanticSearchAsync(request, cancellationToken);
-
-    [HttpPost("ai/chat")]
-    public Task<AiChatResponse> AiChat(AiChatRequest request, CancellationToken cancellationToken)
-        => _aiService.ChatAsync(request, cancellationToken);
+        => _sender.Send(new GetAuditLogsQuery(branchId), cancellationToken);
 }

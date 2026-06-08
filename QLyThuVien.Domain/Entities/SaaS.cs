@@ -1,5 +1,3 @@
-using QLyThuVien.Domain.Common;
-
 namespace QLyThuVien.Domain.Entities;
 
 public sealed class Tenant : AuditableEntity

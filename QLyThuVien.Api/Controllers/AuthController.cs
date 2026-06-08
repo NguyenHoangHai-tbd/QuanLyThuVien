@@ -1,21 +1,30 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QLyThuVien.Application.Dtos;
-using QLyThuVien.Application.Services;
+using MediatR;
+using QLyThuVien.Application.Features.Auth.Common;
+using QLyThuVien.Application.Features.Auth.Commands.Login;
+using QLyThuVien.Application.Features.Auth.Commands.Logout;
 
 namespace QLyThuVien.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[Authorize]
 public sealed class AuthController : ControllerBase
 {
-    private readonly AuthService _authService;
+    private readonly ISender _sender;
 
-    public AuthController(AuthService authService)
+    public AuthController(ISender sender)
     {
-        _authService = authService;
+        _sender = sender;
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public Task<LoginResponse> Login(LoginRequest request, CancellationToken cancellationToken)
-        => _authService.LoginAsync(request, cancellationToken);
+        => _sender.Send(new LoginCommand(request), cancellationToken);
+
+    [HttpPost("logout")]
+    public Task<LogoutResponse> Logout(CancellationToken cancellationToken)
+        => _sender.Send(new LogoutCommand(), cancellationToken);
 }

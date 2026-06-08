@@ -1,40 +1,46 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QLyThuVien.Application.Dtos;
-using QLyThuVien.Application.Services;
+using MediatR;
+using QLyThuVien.Application.Features.Users.Common;
+using QLyThuVien.Application.Features.Users.Commands.Create;
+using QLyThuVien.Application.Features.Users.Commands.Delete;
+using QLyThuVien.Application.Features.Users.Commands.Update;
+using QLyThuVien.Application.Features.Users.Queries;
 
 namespace QLyThuVien.Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
+[Authorize(Roles = "SuperAdmin,TenantAdmin")]
 public sealed class UsersController : ControllerBase
 {
-    private readonly UserService _userService;
+    private readonly ISender _sender;
 
-    public UsersController(UserService userService)
+    public UsersController(ISender sender)
     {
-        _userService = userService;
+        _sender = sender;
     }
 
     [HttpGet]
     public Task<IReadOnlyCollection<UserAccountDto>> SearchUsers([FromQuery] string? search, [FromQuery] Guid? branchId, CancellationToken cancellationToken)
-        => _userService.SearchUsersAsync(search, branchId, cancellationToken);
+        => _sender.Send(new SearchUsersQuery(search, branchId), cancellationToken);
 
     [HttpGet("{id:guid}")]
     public Task<UserAccountDto> GetUser(Guid id, CancellationToken cancellationToken)
-        => _userService.GetUserAsync(id, cancellationToken);
+        => _sender.Send(new GetUserQuery(id), cancellationToken);
 
     [HttpPost]
     public Task<UserAccountDto> CreateUser(CreateUserRequest request, CancellationToken cancellationToken)
-        => _userService.CreateUserAsync(request, cancellationToken);
+        => _sender.Send(new CreateUserCommand(request), cancellationToken);
 
     [HttpPut("{id:guid}")]
     public Task<UserAccountDto> UpdateUser(Guid id, UpdateUserRequest request, CancellationToken cancellationToken)
-        => _userService.UpdateUserAsync(id, request, cancellationToken);
+        => _sender.Send(new UpdateUserCommand(id, request), cancellationToken);
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid id, CancellationToken cancellationToken)
     {
-        await _userService.DeleteUserAsync(id, cancellationToken);
+        await _sender.Send(new DeleteUserCommand(id), cancellationToken);
         return NoContent();
     }
 }
