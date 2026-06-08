@@ -11,10 +11,15 @@ Dự án phục vụ các nghiệp vụ chính của một hệ thống thư vi�
 - Quản lý chi nhánh thư viện.
 - Quản lý người dùng và phân quyền.
 - Quản lý sách.
+- Quản lý tác giả.
+- Quản lý thể loại.
+- Quản lý nhà xuất bản.
 - Quản lý bản sao sách.
 - Quản lý độc giả.
 - Quản lý mượn sách, trả sách, gia hạn sách.
 - Quản lý đặt giữ sách.
+- Quản lý phạt trễ hạn.
+- Quản lý kiểm kê, hư hỏng, mất mát và thanh lý bản sao sách.
 - Xem dashboard thống kê.
 - Xem thông báo.
 - Xem audit log.
@@ -98,16 +103,21 @@ QLyThuVien.Application
   Features
     Ai
     AuditLogs
+    Authors
     Auth
     BookCopies
     Books
     Branches
+    Categories
     Dashboard
+    Fines
     Holds
+    Inventory
     Loans
     Members
     Notifications
     Policies
+    Publishers
     System
     Tenants
     Users
@@ -413,22 +423,27 @@ Sau khi tách, danh sách feature hiện tại là:
 ```text
 Ai
 AuditLogs
+Authors
 Auth
 BookCopies
 Books
 Branches
+Categories
 Dashboard
+Fines
 Holds
+Inventory
 Loans
 Members
 Notifications
 Policies
+Publishers
 System
 Tenants
 Users
 ```
 
-Các route API vẫn được giữ nguyên để không làm hỏng cách test trên Postman.
+Các route API cũ vẫn được giữ nguyên để không làm hỏng cách test trên Postman. Ngoài ra, dự án đã bổ sung thêm 5 feature theo tài liệu yêu cầu: `Authors`, `Categories`, `Publishers`, `Fines`, `Inventory`.
 
 ### Bước 8: Thêm JWT Authentication và phân quyền
 
@@ -768,6 +783,36 @@ PUT /api/catalog/books/{id}
 DELETE /api/catalog/books/{id}
 ```
 
+### Authors
+
+```http
+GET /api/catalog/authors
+GET /api/catalog/authors?search=kim
+POST /api/catalog/authors
+PUT /api/catalog/authors/{id}
+DELETE /api/catalog/authors/{id}
+```
+
+### Categories
+
+```http
+GET /api/catalog/categories
+GET /api/catalog/categories?search=van
+POST /api/catalog/categories
+PUT /api/catalog/categories/{id}
+DELETE /api/catalog/categories/{id}
+```
+
+### Publishers
+
+```http
+GET /api/catalog/publishers
+GET /api/catalog/publishers?search=tre
+POST /api/catalog/publishers
+PUT /api/catalog/publishers/{id}
+DELETE /api/catalog/publishers/{id}
+```
+
 ### BookCopies
 
 ```http
@@ -803,6 +848,23 @@ POST /api/circulation/renewals
 GET /api/circulation/holds
 POST /api/circulation/holds
 POST /api/circulation/holds/{id}/cancel
+```
+
+### Fines
+
+```http
+GET /api/circulation/fines
+GET /api/circulation/fines?unpaidOnly=false
+POST /api/circulation/fines/{loanId}/pay
+```
+
+### Inventory
+
+```http
+GET /api/inventory/summary
+GET /api/inventory/copies
+GET /api/inventory/copies?status=Available
+POST /api/inventory/copies/stocktake
 ```
 
 ### Dashboard
@@ -962,7 +1024,7 @@ Các kiểm thử đã thực hiện:
 - API dùng Bearer token gọi được.
 - AI search chạy được.
 - Dashboard trả dữ liệu thống kê.
-- Books, BookCopies, Loans, Holds, Branches, Policies, Notifications, AuditLogs gọi được sau khi tách feature.
+- Books, Authors, Categories, Publishers, BookCopies, Loans, Holds, Fines, Inventory, Branches, Policies, Notifications, AuditLogs gọi được sau khi tách feature.
 - Tài khoản `Librarian` gọi `/api/users` bị chặn `403`, đúng phân quyền.
 - Không gửi token thì API trả `401`.
 
