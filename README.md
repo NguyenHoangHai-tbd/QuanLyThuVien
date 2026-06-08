@@ -19,6 +19,7 @@ Dự án phục vụ các nghiệp vụ chính của một hệ thống thư vi�
 - Xem thông báo.
 - Xem audit log.
 - Kiểm tra kết nối database.
+- Demo dự phòng dạng AI tìm kiếm và trò chuyện.
 
 Mục tiêu chính của lần hoàn thiện này là biến project từ dạng code gộp service/DTO/query sang cấu trúc rõ ràng hơn theo CQRS/MediatR, phù hợp để nộp bài hoặc đưa lên GitHub.
 
