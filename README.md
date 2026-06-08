@@ -445,6 +445,30 @@ Users
 
 Các route API cũ vẫn được giữ nguyên để không làm hỏng cách test trên Postman. Ngoài ra, dự án đã bổ sung thêm 5 feature theo tài liệu yêu cầu: `Authors`, `Categories`, `Publishers`, `Fines`, `Inventory`.
 
+### Bước 7.1: Bổ sung feature theo tài liệu A2
+
+Sau khi đọc tài liệu `A2_Phần mềm quản lý thư viện.docx`, các use case còn thiếu nhưng phù hợp với phạm vi bài hiện tại được bổ sung thêm gồm:
+
+- `Authors`: tách quản lý tác giả ra khỏi feature `Books`, hỗ trợ thêm, sửa, xóa, tìm kiếm tác giả.
+- `Categories`: tách quản lý thể loại sách, hỗ trợ thêm, sửa, xóa, tìm kiếm thể loại.
+- `Publishers`: tách quản lý nhà xuất bản, hỗ trợ thêm, sửa, xóa, tìm kiếm nhà xuất bản.
+- `Fines`: bổ sung nghiệp vụ phạt trễ hạn theo `UC-09`, cho phép xem khoản phạt chưa thu và ghi nhận đã thu phạt.
+- `Inventory`: bổ sung nghiệp vụ kiểm kê theo `UC-12`, cho phép xem tổng hợp kho, lọc bản sao theo trạng thái và cập nhật tình trạng bản sao khi kiểm kê.
+
+Các feature này vẫn đi theo đúng cấu trúc:
+
+```text
+Features
+  FeatureName
+    Commands
+      Create / Update / Delete / Pay / Stocktake
+    Common
+    Handlers
+    Queries
+```
+
+Trong đó `Fines` chỉ có command `Pay` vì nghiệp vụ phạt được phát sinh từ `Loan`, còn `Inventory` có command `Stocktake` vì thao tác chính của kiểm kê là cập nhật trạng thái bản sao sách sau khi quét barcode/QR.
+
 ### Bước 8: Thêm JWT Authentication và phân quyền
 
 Ban đầu project dùng token tự viết bằng Base64 và HMAC. Sau đó đã chuyển sang JWT chuẩn.
