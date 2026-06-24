@@ -97,6 +97,7 @@ public sealed class InMemoryLibraryRepository : ILibraryRepository
         var tenantId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         var mainBranchId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1");
         var scienceBranchId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2");
+        var superAdminId = Guid.Parse("cccccccc-cccc-cccc-cccc-ccccccccccc0");
         var adminId = Guid.Parse("cccccccc-cccc-cccc-cccc-ccccccccccc1");
         var librarianId = Guid.Parse("cccccccc-cccc-cccc-cccc-ccccccccccc2");
 
@@ -144,6 +145,17 @@ public sealed class InMemoryLibraryRepository : ILibraryRepository
         });
 
         _users.AddRange([
+            new UserAccount
+            {
+                Id = superAdminId,
+                TenantId = tenantId,
+                FullName = "System Super Admin",
+                Email = "superadmin@system.local",
+                PasswordHash = passwordHasher.Hash("SuperAdmin@123"),
+                Role = UserRole.SuperAdmin,
+                Locale = "vi",
+                CreatedAt = now.AddDays(-95)
+            },
             new UserAccount
             {
                 Id = adminId,

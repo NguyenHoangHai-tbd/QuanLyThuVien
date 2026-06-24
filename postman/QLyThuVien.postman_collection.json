@@ -33,6 +33,45 @@
       "name": "01 Auth",
       "item": [
         {
+          "name": "Login SuperAdmin - Save JWT Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantKey\": \"pacific\",\n  \"email\": \"superadmin@system.local\",\n  \"password\": \"SuperAdmin@123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('token', json.accessToken);",
+                  "pm.environment.set('superAdminToken', json.accessToken);",
+                  "pm.test('Access token is JWT', function () {",
+                  "  pm.expect(json.accessToken.split('.')).to.have.length(3);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Login Admin - Save JWT Token",
           "request": {
             "method": "POST",
